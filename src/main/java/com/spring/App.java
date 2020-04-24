@@ -1,6 +1,6 @@
-import server.Server;
-
+package com.spring;
 import java.io.IOException;
+import com.spring.server.Server;
 
 public class App {
 
