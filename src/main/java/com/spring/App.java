@@ -1,17 +1,14 @@
 package com.spring;
-import java.io.IOException;
+
+import com.spring.concurrency.ServerThreadPoolExecutor;
 import com.spring.server.Server;
 
 public class App {
 
     public static void main(String[] args) {
-        Server server = new Server(9090);
+        Server server = new Server(9090, ServerThreadPoolExecutor.getExecutor());
 
-        try {
-            server.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        server.start();
 
         System.exit(-1);
     }

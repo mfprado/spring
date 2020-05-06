@@ -1,54 +1,60 @@
 package com.spring.server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RequestDeserializer {
-    private static final int CR = 0x0d;
-    private static final int LF = 0x0a;
+public class HttpServletRequest {
     private static final String CONTENT_LENGTH = "Content-Length";
+    private ServletInputStream servletInputStream;
+    private HttpRequest request;
 
-    public Optional<HttpRequest> deserialize(InputStream input) throws IOException {
-        var firstLine = this.readLine(input);
-
-        if (firstLine.equals("")) return Optional.empty();
-        var tokenizer = new StringTokenizer(firstLine);
-        var method = HttpMethod.valueOf(tokenizer.nextToken().toUpperCase());
-        var url = this.buildURL(tokenizer.nextToken());
-
-        //Headers
-        var headers = buildHeaders(input);
-
-        if (method == HttpMethod.GET || method == HttpMethod.HEAD || !headers.containsKey(CONTENT_LENGTH)) {
-            return Optional.of(new HttpRequest(method, url, headers, Optional.empty()));
-        }
-
-        var contentLength = Integer.parseInt(headers.get(CONTENT_LENGTH).get(0));
-        var body = getBody(input, contentLength);
-
-        return Optional.of(new HttpRequest(method, url, headers, body));
+    public HttpServletRequest(InputStream input) {
+        this.servletInputStream = new ServletInputStream(input);
+        createRequest();
     }
 
-    public static Optional<String> getBody(InputStream inputStream, int contentLength) throws IOException {
+    private void createRequest() {
+        try {
+            var firstLine = this.servletInputStream.readLine();
+            if (firstLine.equals("")) return;
 
+            var tokenizer = new StringTokenizer(firstLine);
+            var method = HttpMethod.valueOf(tokenizer.nextToken().toUpperCase());
+            var url = this.buildURL(tokenizer.nextToken());
+
+            var headers = buildHeaders();
+
+            if (method == HttpMethod.GET || method == HttpMethod.HEAD || !headers.containsKey(CONTENT_LENGTH)) {
+                this.request = new HttpRequest(method, url, headers, Optional.empty());
+            } else {
+                var contentLength = Integer.parseInt(headers.get(CONTENT_LENGTH).get(0));
+                var body = getBody(contentLength);
+
+                this.request = new HttpRequest(method, url, headers, body);
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error creating request");
+        }
+    }
+
+    public Optional<HttpRequest> getRequest() {
+        return Optional.ofNullable(request);
+    }
+
+    public  Optional<String> getBody(int contentLength) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
-        BufferedReader bufferedReader = null;
 
         try {
-            if (inputStream != null && contentLength > 0) {
-                bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            if (contentLength > 0) {
                 int bytesRead = -1;
-                while ((bytesRead = bufferedReader.read()) > 0) {
+                while ((bytesRead = servletInputStream.read()) > 0) {
                     stringBuilder.append((char) bytesRead);
                     if (stringBuilder.length() == contentLength) break;
                 }
             }
         } catch (IOException ex) {
-            //TODO: handle
             System.out.println("Error reading request body" + ex.getMessage());
             throw ex;
         }
@@ -56,14 +62,14 @@ public class RequestDeserializer {
         return Optional.of(stringBuilder.toString());
     }
 
-    private Map<String, List<String>> buildHeaders(InputStream input) throws IOException {
+    private Map<String, List<String>> buildHeaders() throws IOException {
         Map<String, List<String>> headers = new HashMap<>();
-        var line = this.readLine(input);
+        var line = this.servletInputStream.readLine();
         while (!line.equals("")) {
             var kv = line.split(": ");
             var values = List.of(kv[1].split(","));
             headers.put(kv[0], values);
-            line = this.readLine(input);
+            line = this.servletInputStream.readLine();
         }
         return headers;
     }
@@ -146,15 +152,7 @@ public class RequestDeserializer {
         return new URL(Protocol.valueOf(protocol.toUpperCase()), host, path, queryParams);
     }
 
-    private String readLine(InputStream input) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int c = input.read();
-        while (c >= 0 && c != LF) {
-            if (c != CR) {
-                sb.append((char) c);
-            }
-            c = input.read();
-        }
-        return sb.toString();
+    public void closeInput() throws IOException {
+        this.servletInputStream.closeInput();
     }
 }
