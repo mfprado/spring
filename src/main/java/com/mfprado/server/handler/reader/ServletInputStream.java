@@ -1,4 +1,4 @@
-package com.spring.server;
+package com.mfprado.server.handler.reader;
 
 import java.io.*;
 
@@ -31,9 +31,5 @@ public class ServletInputStream {
             this.bufferedReader = new BufferedReader(new InputStreamReader(input));
         }
         return bufferedReader.read();
-    }
-
-    public void closeInput() throws IOException {
-        input.close();
     }
 }

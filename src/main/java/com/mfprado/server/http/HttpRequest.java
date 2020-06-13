@@ -1,26 +1,37 @@
-package com.spring.server;
+package com.mfprado.server.http;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class HttpResponse {
-    private HttpStatus status;
+
+public class HttpRequest {
+    private HttpMethod method;
+    private URL url;
     private Map<String, List<String>> headers;
     private Optional<String> body;
 
-    public HttpResponse(HttpStatus status, Map<String, List<String>> headers, Optional<String> body) {
-        this.status = status;
+    public HttpRequest(HttpMethod method, URL url, Map<String, List<String>> headers, Optional<String> body) {
+        this.method = method;
+        this.url = url;
         this.headers = headers;
         this.body = body;
     }
 
-    public HttpStatus getStatus() {
-        return status;
+    public HttpMethod getMethod() {
+        return method;
     }
 
-    public void setStatus(HttpStatus status) {
-        this.status = status;
+    public void setMethod(HttpMethod method) {
+        this.method = method;
+    }
+
+    public URL getUrl() {
+        return url;
+    }
+
+    public void setUrl(URL url) {
+        this.url = url;
     }
 
     public Map<String, List<String>> getHeaders() {

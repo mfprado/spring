@@ -1,27 +1,36 @@
-package com.spring.concurrency;
+package com.mfprado.server.concurrency;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.*;
 
 
 public class ServerThreadPoolExecutor {
+
+    private static final Logger logger = LoggerFactory.getLogger(ServerThreadPoolExecutor.class);
+
     private static final String PROPERTIES_FILE = "/conf/app/thread.pool.executor.properties";
     private static int CORE_POOL_SIZE = 256;
     private static int MAXIMUM_POOL_SIZE = 256;
     private static long KEEP_ALIVE_TIME = 60000;
-    private static int QUEUE_CAPACITY = 10;
 
     static {
         try {
             loadProperties();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            logger.info("Cannot read thread pool executor properties from /conf/app");
             e.printStackTrace();
         }
     }
 
-    private final static ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME,
-            TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(QUEUE_CAPACITY), new ThreadPoolExecutor.AbortPolicy());
+    private final static ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
+            CORE_POOL_SIZE,
+            MAXIMUM_POOL_SIZE,
+            KEEP_ALIVE_TIME,
+            TimeUnit.MILLISECONDS,
+            new SynchronousQueue());
 
     public static ThreadPoolExecutor getExecutor() {
         return EXECUTOR;
@@ -34,6 +43,5 @@ public class ServerThreadPoolExecutor {
         CORE_POOL_SIZE = Integer.parseInt((String) properties.get("corePoolSize"));
         MAXIMUM_POOL_SIZE = Integer.parseInt((String) properties.get("maximumPoolSize"));
         KEEP_ALIVE_TIME = Long.parseLong((String) properties.get("keepAliveTime"));
-        QUEUE_CAPACITY = Integer.parseInt((String) properties.get("queueCapacity"));
     }
 }

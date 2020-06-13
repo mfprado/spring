@@ -1,4 +1,4 @@
-package com.spring.server;
+package com.mfprado.server.http;
 
 import java.util.Map;
 
