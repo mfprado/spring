@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
-import java.util.stream.Collectors;
 
 public class URLParser {
 
@@ -54,13 +53,8 @@ public class URLParser {
                 }
             }
 
-            Map<String, String> queryParams = Optional.ofNullable(query).map(q -> List.of(q.split("&"))
-                    .stream().map(kv -> kv.split("="))
-                    .collect(Collectors.toMap(v -> v[0], v -> v[1]))
-            ).orElse(Map.of());
 
-
-            return new URL(Protocol.valueOf(protocol.toUpperCase()), host, path, queryParams);
+            return new URL(Protocol.valueOf(protocol.toUpperCase()), host, path, Optional.ofNullable(query));
         } else {
             throw new InvalidRequestException("Error parsing url");
         }

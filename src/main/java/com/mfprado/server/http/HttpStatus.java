@@ -6,7 +6,7 @@ public enum HttpStatus {
     BAD_REQUEST(400, "Bad Request"),
     NOT_FOUND(404, "Not Found"),
     INTERNAL_SERVER_ERROR(500, "Internal Server Error"),
-    SERVICE_UNAVAILABLE(503,"Service Unavailable");
+    SERVICE_UNAVAILABLE(503, "Service Unavailable");
 
     private int code;
     private String description;
@@ -22,5 +22,9 @@ public enum HttpStatus {
 
     public String getDescription() {
         return description;
+    }
+
+    public void setCode(int statusCode) {
+        this.code = statusCode;
     }
 }

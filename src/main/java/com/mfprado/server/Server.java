@@ -7,6 +7,7 @@ import com.mfprado.server.handler.exception.WriterException;
 import com.mfprado.server.handler.reader.*;
 import com.mfprado.server.handler.writer.ResponseWriter;
 import com.mfprado.server.handler.writer.ResponseWriterFactory;
+import com.mfprado.server.servlet.Servlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,11 +19,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class Server {
 
     private final Logger logger = LoggerFactory.getLogger(Server.class);
+    private final Servlet servlet;
     private int port;
     private ThreadPoolExecutor threadPoolExecutor;
 
-    public Server(int port, ThreadPoolExecutor threadPoolExecutor) {
+    public Server(int port, Servlet servlet, ThreadPoolExecutor threadPoolExecutor) {
         this.port = port;
+        this.servlet = servlet;
         this.threadPoolExecutor = threadPoolExecutor;
     }
 
@@ -45,7 +48,7 @@ public class Server {
                 var socket = serverSocket.accept();
                 logger.info("New client connected");
                 try {
-                    threadPoolExecutor.execute(new SocketHandler(socket, requestReader, responseWriter));
+                    threadPoolExecutor.execute(new SocketHandler(socket, requestReader, responseWriter, servlet));
                 } catch (RejectedExecutionException e) {
                     rejectHandler.reject(socket);
                     socket.close();
